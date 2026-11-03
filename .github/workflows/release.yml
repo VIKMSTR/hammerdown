@@ -1,0 +1,141 @@
+# Builds Hammerdown for Windows, Linux, macOS and Android when a version tag
+# (v1.2.3) is pushed, and attaches the packages to a GitHub Release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: # manual dry run: builds artifacts, skips the release
+
+permissions:
+  contents: read
+
+env:
+  FYNE_TOOLS_VERSION: v1.7.4 # keep in sync with the Makefile
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Install system libraries
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev
+      - name: Format check, vet and tests
+        run: make check
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            runner: ubuntu-latest
+            os: linux
+            artifact: hammerdown.tar.xz
+          - name: windows
+            runner: windows-latest
+            os: windows
+            artifact: hammerdown.exe
+          - name: macos
+            runner: macos-latest
+            os: darwin
+            artifact: hammerdown-macos.zip
+          - name: android
+            runner: ubuntu-latest
+            os: android
+            artifact: hammerdown.apk
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      CGO_ENABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Compute version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          else
+            echo "APP_VERSION=0.0.0" >> "$GITHUB_ENV"
+          fi
+          echo "APP_BUILD=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+
+      - name: Install Linux system libraries
+        if: matrix.os == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev
+
+      - name: Point fyne at the preinstalled Android NDK
+        if: matrix.os == 'android'
+        run: echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+
+      - name: Install fyne packaging tool
+        run: go install "fyne.io/tools/cmd/fyne@${FYNE_TOOLS_VERSION}"
+
+      - name: Build desktop binary
+        if: matrix.os != 'android'
+        run: |
+          ldflags="-s -w"
+          exe=""
+          if [[ "${{ matrix.os }}" == "windows" ]]; then
+            ldflags="$ldflags -H=windowsgui"
+            exe=".exe"
+          fi
+          if [[ "${{ matrix.os }}" == "darwin" ]]; then
+            export CGO_LDFLAGS="-Wl,-no_warn_duplicate_libraries"
+          fi
+          go build -trimpath -ldflags "$ldflags" -o "bin/hammerdown$exe" .
+          echo "EXE_PATH=bin/hammerdown$exe" >> "$GITHUB_ENV"
+
+      - name: Package desktop app
+        if: matrix.os != 'android'
+        run: |
+          fyne package --os "${{ matrix.os }}" --release \
+            --app-version "$APP_VERSION" --app-build "$APP_BUILD" \
+            --exe "$EXE_PATH"
+
+      - name: Package Android app
+        if: matrix.os == 'android'
+        # Debug-signed APK for sideloading; a Play Store build needs
+        # `fyne release` with a keystore stored in repository secrets.
+        run: |
+          fyne package --os android \
+            --app-version "$APP_VERSION" --app-build "$APP_BUILD"
+
+      - name: Zip macOS bundle
+        if: matrix.os == 'darwin'
+        run: ditto -c -k --keepParent hammerdown.app hammerdown-macos.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hammerdown-${{ matrix.name }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Hammerdown $GITHUB_REF_NAME" \
+            --generate-notes

@@ -4,3 +4,5 @@ hammerdown.app
 hammerdown.tar.xz
 bin/
 *.test
+hammerdown-macos.zip
+hammerdown.apk

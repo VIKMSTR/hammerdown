@@ -33,6 +33,18 @@ make help              # list all targets
 use and takes the app name, ID, icon and version from `FyneApp.toml`. Fyne
 increments `Build` in that file on every release package.
 
+## Releases
+
+Pushing a version tag builds every platform in GitHub Actions
+(`.github/workflows/release.yml`) and publishes a GitHub Release with
+`hammerdown.exe` (Windows), `hammerdown.tar.xz` (Linux),
+`hammerdown-macos.zip` (macOS, unsigned) and `hammerdown.apk` (Android,
+debug-signed for sideloading):
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
+
 ## Features
 
 - Split view: editor on the left, live preview on the right (toggle with
