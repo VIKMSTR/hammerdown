@@ -1,7 +1,6 @@
-
 [Details]
 Icon = "Icon.png"
 Name = "hammerdown"
 ID = "io.github.hammerdown"
 Version = "0.1.0"
-Build = 1
+Build = 2

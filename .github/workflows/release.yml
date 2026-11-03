@@ -81,26 +81,27 @@ jobs:
         run: go install "fyne.io/tools/cmd/fyne@${FYNE_TOOLS_VERSION}"
 
       - name: Build desktop binary
-        if: matrix.os != 'android'
+        # Windows is built by `fyne package` itself (it embeds the icon and,
+        # in release mode, strips symbols and hides the console window).
+        if: matrix.os == 'linux' || matrix.os == 'darwin'
         run: |
-          ldflags="-s -w"
-          exe=""
-          if [[ "${{ matrix.os }}" == "windows" ]]; then
-            ldflags="$ldflags -H=windowsgui"
-            exe=".exe"
-          fi
           if [[ "${{ matrix.os }}" == "darwin" ]]; then
             export CGO_LDFLAGS="-Wl,-no_warn_duplicate_libraries"
           fi
-          go build -trimpath -ldflags "$ldflags" -o "bin/hammerdown$exe" .
-          echo "EXE_PATH=bin/hammerdown$exe" >> "$GITHUB_ENV"
+          go build -trimpath -ldflags "-s -w" -o bin/hammerdown .
 
       - name: Package desktop app
-        if: matrix.os != 'android'
+        if: matrix.os == 'linux' || matrix.os == 'darwin'
         run: |
           fyne package --os "${{ matrix.os }}" --release \
             --app-version "$APP_VERSION" --app-build "$APP_BUILD" \
-            --exe "$EXE_PATH"
+            --exe bin/hammerdown
+
+      - name: Package Windows app
+        if: matrix.os == 'windows'
+        run: |
+          fyne package --os windows --release \
+            --app-version "$APP_VERSION" --app-build "$APP_BUILD"
 
       - name: Package Android app
         if: matrix.os == 'android'
