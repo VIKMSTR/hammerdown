@@ -49,11 +49,17 @@ increments `Build` in that file on every release package.
 - Images resolve relative to the document, bare filenames also in `incoming/`;
   remote images and YouTube thumbnails load in the background.
 - Help → Markdown Reference shows every supported construct.
+- Optional typing speed meter (View → I Show Speed, off by default): an
+  animated green-to-red level bar with peak hold in the status bar and the
+  current speed in keystrokes ("types") per minute (Backspace and Delete do
+  not count), measured over the last five seconds.
 - Optional typing sound (View → Typing Sound, off by default): a soft
-  vibration-like buzz, bubbles, or a typewriter (with a bell on Enter), in
+  vibration-like buzz, a soft mechanical-switch click, bubbles, a clicky
+  (Cherry MX Blue) switch, or a typewriter (with a bell on Enter), in
   three volume levels. Space, Enter and Backspace sound slightly different
-  from letters; navigation keys and shortcuts are silent. Samples are CC0
-  recordings from BigSoundBank.com, see `internal/sound/assets/CREDITS.md`.
+  from letters; navigation keys and shortcuts are silent. Samples come from
+  CC0 recordings on BigSoundBank.com and CC BY / CC BY-SA recordings on
+  Wikimedia Commons; see `internal/sound/assets/CREDITS.md`.
 
 ## Shortcuts
 

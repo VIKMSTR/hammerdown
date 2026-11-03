@@ -18,6 +18,7 @@ import (
 
 	"mkup/internal/editor"
 	md "mkup/internal/markdown"
+	"mkup/internal/sound"
 )
 
 //go:embed reference.md
@@ -294,5 +295,6 @@ func (a *App) about() {
 		appName+" — a Markdown editor with live preview.\n\n"+
 			"Supports the blog.sh Markdown subset: headings, emphasis, links,\n"+
 			"lists, task lists, quotes, chat, tables, code, images, galleries,\n"+
-			"video, audio, attachments, teaser and front matter.", a.win)
+			"video, audio, attachments, teaser and front matter.\n\n"+
+			sound.Credits, a.win)
 }

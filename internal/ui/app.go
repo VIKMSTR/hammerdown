@@ -30,6 +30,7 @@ const (
 	prefLastDir     = "lastDir"
 	prefSound       = "typingSound"
 	prefSoundVolume = "typingSoundVolume"
+	prefShowSpeed   = "showTypingSpeed"
 )
 
 // App is the editor application state.
@@ -56,9 +57,10 @@ type App struct {
 	editorPane  fyne.CanvasObject
 	showPreview bool
 
-	posLabel, statsLabel, hintLabel *widget.Label
-	status                          *fyne.Container
-	wrapItem, previewItem           *fyne.MenuItem
+	posLabel, statsLabel, hintLabel  *widget.Label
+	status                           *fyne.Container
+	wrapItem, previewItem, speedItem *fyne.MenuItem
+	speedMeter                       *speedMeter
 
 	sounds                *sound.Player
 	soundMenu, volumeMenu []*fyne.MenuItem
@@ -123,7 +125,16 @@ func (a *App) build() {
 	}
 	a.sounds.SetVolume(prefs.FloatWithFallback(prefSoundVolume, a.sounds.Volume()))
 	a.sounds.SetProfile(sound.ParseProfile(prefs.String(prefSound)))
-	a.entry.onKeySound = a.sounds.Play
+	a.speedMeter = newSpeedMeter(a.hover("Typing speed: keystrokes per minute over the last few seconds"))
+	if !prefs.Bool(prefShowSpeed) {
+		a.speedMeter.Hide()
+	}
+	a.entry.onKeystroke = func(k sound.Kind) {
+		a.sounds.Play(k)
+		if a.speedMeter.Visible() && k != sound.Delete { // corrections are not speed
+			a.speedMeter.record()
+		}
+	}
 
 	a.previewScroll = container.NewVScroll(readable(widget.NewLabel("")))
 	a.editorPane = container.NewStack(newPanel(colorEditorBg),
@@ -135,7 +146,8 @@ func (a *App) build() {
 	a.body = container.NewStack()
 	a.applyLayout()
 
-	a.status = container.NewBorder(nil, nil, a.posLabel, a.statsLabel, a.hintLabel)
+	a.status = container.NewBorder(nil, nil, a.posLabel,
+		container.NewHBox(a.speedMeter, a.statsLabel), a.hintLabel)
 
 	// The bars are opaque end to end (gaps included) because the editor's
 	// hidden frame runs underneath their edges.
@@ -329,6 +341,22 @@ func (a *App) toggleWrap() {
 	a.applying = true
 	a.entry.setTextAndCursor(a.entry.Text, off)
 	a.applying = false
+}
+
+func (a *App) toggleSpeed() {
+	show := !a.speedMeter.Visible()
+	a.fyneApp.Preferences().SetBool(prefShowSpeed, show)
+	if show {
+		a.speedMeter.Show()
+	} else {
+		a.speedMeter.Hide()
+		a.speedMeter.reset()
+	}
+	if a.speedItem != nil {
+		a.speedItem.Checked = show
+		a.win.MainMenu().Refresh()
+	}
+	a.status.Refresh()
 }
 
 func (a *App) dirty() bool { return a.entry.Text != a.savedText }

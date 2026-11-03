@@ -19,7 +19,7 @@ type mdEntry struct {
 	onReturn       func() bool // returns true if it handled the key
 	onPaste        func(apply func())
 	contextMenu    func() *fyne.Menu
-	onKeySound     func(sound.Kind) // typing feedback, called before the key is applied
+	onKeystroke    func(sound.Kind) // typing feedback (sound, speed), called before the key is applied
 }
 
 func newMDEntry() *mdEntry {
@@ -53,25 +53,25 @@ func (e *mdEntry) TypedShortcut(s fyne.Shortcut) {
 }
 
 func (e *mdEntry) TypedRune(r rune) {
-	if e.onKeySound != nil {
+	if e.onKeystroke != nil {
 		if r == ' ' {
-			e.onKeySound(sound.Space)
+			e.onKeystroke(sound.Space)
 		} else {
-			e.onKeySound(sound.Key)
+			e.onKeystroke(sound.Key)
 		}
 	}
 	e.Entry.TypedRune(r)
 }
 
 func (e *mdEntry) TypedKey(k *fyne.KeyEvent) {
-	if e.onKeySound != nil {
+	if e.onKeystroke != nil {
 		switch k.Name {
 		case fyne.KeyReturn, fyne.KeyEnter:
-			e.onKeySound(sound.Return)
+			e.onKeystroke(sound.Return)
 		case fyne.KeyBackspace, fyne.KeyDelete:
-			e.onKeySound(sound.Delete)
+			e.onKeystroke(sound.Delete)
 		case fyne.KeyTab:
-			e.onKeySound(sound.Space)
+			e.onKeystroke(sound.Space)
 		}
 	}
 	if (k.Name == fyne.KeyReturn || k.Name == fyne.KeyEnter) && e.SelectedText() == "" &&

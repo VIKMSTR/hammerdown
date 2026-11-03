@@ -136,7 +136,10 @@ func (a *App) mainMenu() *fyne.MainMenu {
 	a.previewItem.Checked = a.showPreview
 	a.wrapItem = fyne.NewMenuItem("Word Wrap", a.toggleWrap)
 	a.wrapItem.Checked = a.entry.Wrapping != fyne.TextWrapOff
-	view := fyne.NewMenu("View", a.previewItem, a.wrapItem, fyne.NewMenuItemSeparator(), a.soundMenuItem())
+	a.speedItem = fyne.NewMenuItem("I Show Speed", a.toggleSpeed)
+	a.speedItem.Checked = a.speedMeter.Visible()
+	view := fyne.NewMenu("View", a.previewItem, a.wrapItem, fyne.NewMenuItemSeparator(),
+		a.speedItem, a.soundMenuItem())
 
 	help := fyne.NewMenu("Help",
 		fyne.NewMenuItem("Markdown Reference", a.showReference),

@@ -1,7 +1,8 @@
 // Package sound plays short feedback sounds while typing.
 //
 // The samples are cut from CC0 recordings by Joseph Sardin at
-// BigSoundBank.com (see assets/CREDITS.md). Each key press picks a variant,
+// BigSoundBank.com and from CC BY / CC BY-SA keyboard recordings on
+// Wikimedia Commons (see assets/CREDITS.md and [Credits]). Each key press picks a variant,
 // nudges its pitch and level slightly so fast typing does not sound like a
 // machine gun, and mixes it through a single audio output that is opened only
 // when a profile other than Off is first used.
@@ -25,18 +26,31 @@ const (
 	Buzz       Profile = "buzz"
 	Bubble     Profile = "bubble"
 	Typewriter Profile = "typewriter"
+	SoftClick  Profile = "softclick" // muted mechanical switch, brown/red-like
+	Clicky     Profile = "clicky"    // clicky mechanical switch, Cherry MX Blue
 )
 
+// Credits is the attribution the sample licences ask for, for an About box.
+const Credits = "Typing sounds (excerpted):\n" +
+	"Joseph Sardin, BigSoundBank.com — CC0\n" +
+	"\"Typing on Keychron V1 Ultra (Red Linear Switch)\" by C40115,\n" +
+	"Wikimedia Commons — CC BY 4.0\n" +
+	"\"Cherry mx blue sound\" by Xaqaii, Wikimedia Commons — CC BY-SA 4.0"
+
 // Profiles lists the selectable profiles in menu order, from subtle to loud.
-var Profiles = []Profile{Off, Buzz, Bubble, Typewriter}
+var Profiles = []Profile{Off, Buzz, SoftClick, Bubble, Clicky, Typewriter}
 
 // Label is the menu text for a profile.
 func (p Profile) Label() string {
 	switch p {
 	case Buzz:
 		return "Soft Buzz"
+	case SoftClick:
+		return "Soft Click"
 	case Bubble:
 		return "Bubbles"
+	case Clicky:
+		return "Clicky"
 	case Typewriter:
 		return "Typewriter"
 	}
@@ -111,6 +125,14 @@ func loadBanks() (map[Profile]bank, error) {
 	if err != nil {
 		return nil, err
 	}
+	soft, err := load("click-soft1", "click-soft2", "click-soft3", "click-soft4", "click-soft5")
+	if err != nil {
+		return nil, err
+	}
+	blue, err := load("click-blue1", "click-blue2", "click-blue3", "click-blue4", "click-blue5")
+	if err != nil {
+		return nil, err
+	}
 	twKey, err := load("typewriter-key")
 	if err != nil {
 		return nil, err
@@ -130,6 +152,18 @@ func loadBanks() (map[Profile]bank, error) {
 			Space:  voice{clips: buzz, gain: 0.30, jitter: 0.03},
 			Return: voice{clips: buzz, gain: 0.34, jitter: 0.02},
 			Delete: voice{clips: buzz, gain: 0.22, jitter: 0.03},
+		},
+		SoftClick: {
+			Key:    voice{clips: soft, gain: 0.55, jitter: 0.04},
+			Space:  voice{clips: soft, gain: 0.60, jitter: 0.02},
+			Return: voice{clips: soft, gain: 0.60, jitter: 0.02},
+			Delete: voice{clips: soft, gain: 0.45, jitter: 0.03},
+		},
+		Clicky: {
+			Key:    voice{clips: blue, gain: 0.60, jitter: 0.04},
+			Space:  voice{clips: blue, gain: 0.60, jitter: 0.02},
+			Return: voice{clips: blue, gain: 0.65, jitter: 0.02},
+			Delete: voice{clips: blue, gain: 0.50, jitter: 0.03},
 		},
 		Bubble: {
 			Key:    voice{clips: bubbles, gain: 0.45, jitter: 0.10},
@@ -151,6 +185,16 @@ func loadBanks() (map[Profile]bank, error) {
 func basePitch(p Profile, k Kind) float64 {
 	switch {
 	case p == Typewriter:
+		return 1
+	case p == SoftClick || p == Clicky: // big keys are a little deeper
+		switch k {
+		case Space:
+			return 0.86
+		case Return:
+			return 0.9
+		case Delete:
+			return 1.05
+		}
 		return 1
 	case k == Space:
 		return 0.85

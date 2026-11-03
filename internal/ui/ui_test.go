@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
@@ -180,7 +181,7 @@ func TestTypingSoundHooks(t *testing.T) {
 	}
 
 	var got []sound.Kind
-	a.entry.onKeySound = func(k sound.Kind) { got = append(got, k) }
+	a.entry.onKeystroke = func(k sound.Kind) { got = append(got, k) }
 	test.Type(a.entry, "a ")
 	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
 	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyBackspace})
@@ -188,5 +189,73 @@ func TestTypingSoundHooks(t *testing.T) {
 	want := []sound.Kind{sound.Key, sound.Space, sound.Return, sound.Delete}
 	if fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Fatalf("kinds %v, want %v", got, want)
+	}
+}
+
+// TestSpeedMeter checks the typing-speed meter is hidden by default, counts
+// keystrokes only when shown, animates towards the reading, and goes idle
+// after a pause. With MKUP_METER_SHOT=path it saves a screenshot.
+func TestSpeedMeter(t *testing.T) {
+	a := newTestApp(t)
+	m := a.speedMeter
+	if m.Visible() || a.speedItem.Checked {
+		t.Fatal("meter must be hidden by default")
+	}
+	test.Type(a.entry, "abc")
+	if m.speed.PerMinute(time.Now()) != 0 {
+		t.Fatal("keystrokes counted while hidden")
+	}
+
+	a.toggleSpeed()
+	if !m.Visible() || !a.speedItem.Checked {
+		t.Fatal("toggle did not show the meter")
+	}
+	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyBackspace})
+	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyDelete})
+	if m.speed.PerMinute(time.Now()) != 0 {
+		t.Fatal("Backspace/Delete counted as typing speed")
+	}
+	test.Type(a.entry, "x")
+	if m.speed.PerMinute(time.Now()) == 0 {
+		t.Fatal("typed character not counted")
+	}
+	m.speed.Reset()
+	m.halt() // drive frames by hand with a fake clock
+	clock := time.Unix(1000, 0)
+	m.now = func() time.Time { return clock }
+	for range 20 { // 6 keys per second → 360 TPM
+		m.speed.Record(clock)
+		clock = clock.Add(166 * time.Millisecond)
+	}
+	for range 30 {
+		m.tick()
+	}
+	if m.display < 330 || m.display > 390 || m.peak < m.display {
+		t.Fatalf("display %.0f peak %.0f, want ~360", m.display, m.peak)
+	}
+	if p := os.Getenv("MKUP_METER_SHOT"); p != "" {
+		a.win.Resize(fyne.NewSize(1000, 300))
+		img := a.win.Canvas().Capture()
+		f, err := os.Create(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer f.Close()
+		if err := png.Encode(f, img); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	clock = clock.Add(10 * time.Second)
+	for range 200 {
+		m.tick()
+	}
+	if m.display != 0 || m.peak != 0 || m.running {
+		t.Fatalf("after pause: display %.0f peak %.0f running %v", m.display, m.peak, m.running)
+	}
+
+	a.toggleSpeed()
+	if m.Visible() || a.fyneApp.Preferences().Bool(prefShowSpeed) {
+		t.Fatal("toggle did not hide the meter")
 	}
 }
