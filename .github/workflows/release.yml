@@ -22,7 +22,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Install system libraries
-        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev libwayland-dev libxkbcommon-dev
       - name: Format check, vet and tests
         run: make check
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Install Linux system libraries
         if: matrix.os == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev xorg-dev libasound2-dev libwayland-dev libxkbcommon-dev
 
       - name: Point fyne at the preinstalled Android NDK
         if: matrix.os == 'android'
