@@ -1,4 +1,4 @@
-// Package ui is the Fyne front end of the mkup Markdown editor.
+// Package ui is the Fyne front end of the Hammerdown Markdown editor.
 package ui
 
 import (
@@ -14,14 +14,14 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"mkup/internal/editor"
-	md "mkup/internal/markdown"
-	"mkup/internal/sound"
+	"hammerdown/internal/editor"
+	md "hammerdown/internal/markdown"
+	"hammerdown/internal/sound"
 )
 
 const (
-	appID        = "io.github.mkup"
-	appName      = "mkup"
+	appID        = "io.github.hammerdown"
+	appName      = "Hammerdown"
 	previewDelay = 150 * time.Millisecond
 
 	prefWrap        = "wordWrap"

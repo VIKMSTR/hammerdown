@@ -6,8 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 
-	"mkup/internal/editor"
-	"mkup/internal/sound"
+	"hammerdown/internal/editor"
+	"hammerdown/internal/sound"
 )
 
 // mdEntry is a multi-line Entry that routes undo/redo to the app's own

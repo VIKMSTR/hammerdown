@@ -1,4 +1,4 @@
-module mkup
+module hammerdown
 
 go 1.25.0
 

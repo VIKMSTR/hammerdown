@@ -28,4 +28,4 @@ recordings on Wikimedia Commons.
 
 The `click-blue*.wav` excerpts are adaptations of a CC BY-SA 4.0 work and are
 therefore themselves licensed under CC BY-SA 4.0. This applies only to those
-sound files, not to the rest of mkup.
+sound files, not to the rest of Hammerdown.

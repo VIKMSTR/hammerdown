@@ -1,5 +1,5 @@
 ---
-title: mkup Markdown Reference
+title: Hammerdown Markdown Reference
 tags: help, reference
 ---
 Everything this editor understands, in one page. The left side shows the

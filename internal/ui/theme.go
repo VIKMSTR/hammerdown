@@ -9,19 +9,19 @@ import (
 
 // Custom theme names used by the preview and the window chrome.
 const (
-	sizeH1 fyne.ThemeSizeName = "mkup-h1"
-	sizeH2 fyne.ThemeSizeName = "mkup-h2"
-	sizeH3 fyne.ThemeSizeName = "mkup-h3"
-	sizeH4 fyne.ThemeSizeName = "mkup-h4"
-	sizeH5 fyne.ThemeSizeName = "mkup-h5"
-	sizeH6 fyne.ThemeSizeName = "mkup-h6"
+	sizeH1 fyne.ThemeSizeName = "hammerdown-h1"
+	sizeH2 fyne.ThemeSizeName = "hammerdown-h2"
+	sizeH3 fyne.ThemeSizeName = "hammerdown-h3"
+	sizeH4 fyne.ThemeSizeName = "hammerdown-h4"
+	sizeH5 fyne.ThemeSizeName = "hammerdown-h5"
+	sizeH6 fyne.ThemeSizeName = "hammerdown-h6"
 
-	colorCode     fyne.ThemeColorName = "mkup-code"
-	colorBlockBg  fyne.ThemeColorName = "mkup-block-bg"
-	colorMuted    fyne.ThemeColorName = "mkup-muted"
-	colorChrome   fyne.ThemeColorName = "mkup-chrome"    // toolbar and status bar
-	colorEditorBg fyne.ThemeColorName = "mkup-editor-bg" // the source pane
-	colorCaret    fyne.ThemeColorName = "mkup-caret"     // the editor's text cursor
+	colorCode     fyne.ThemeColorName = "hammerdown-code"
+	colorBlockBg  fyne.ThemeColorName = "hammerdown-block-bg"
+	colorMuted    fyne.ThemeColorName = "hammerdown-muted"
+	colorChrome   fyne.ThemeColorName = "hammerdown-chrome"    // toolbar and status bar
+	colorEditorBg fyne.ThemeColorName = "hammerdown-editor-bg" // the source pane
+	colorCaret    fyne.ThemeColorName = "hammerdown-caret"     // the editor's text cursor
 )
 
 var headingSizes = [...]fyne.ThemeSizeName{sizeH1, sizeH2, sizeH3, sizeH4, sizeH5, sizeH6}
@@ -73,13 +73,13 @@ var palette = map[fyne.ThemeColorName][2]color.Color{
 	colorMuted:    {rgb(0x7a7b82), rgb(0x8d909c)},
 }
 
-// mkupTheme extends the default theme with its own palette, heading sizes and
+// hammerdownTheme extends the default theme with its own palette, heading sizes and
 // slightly rounder, airier geometry.
-type mkupTheme struct{ fyne.Theme }
+type hammerdownTheme struct{ fyne.Theme }
 
-func newTheme() fyne.Theme { return &mkupTheme{theme.DefaultTheme()} }
+func newTheme() fyne.Theme { return &hammerdownTheme{theme.DefaultTheme()} }
 
-func (t *mkupTheme) Size(n fyne.ThemeSizeName) float32 {
+func (t *hammerdownTheme) Size(n fyne.ThemeSizeName) float32 {
 	switch n {
 	case sizeH1:
 		return 30
@@ -105,7 +105,7 @@ func (t *mkupTheme) Size(n fyne.ThemeSizeName) float32 {
 	return t.Theme.Size(n)
 }
 
-func (t *mkupTheme) Color(n fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
+func (t *hammerdownTheme) Color(n fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
 	if c, ok := palette[n]; ok {
 		if v == theme.VariantDark {
 			return c[1]

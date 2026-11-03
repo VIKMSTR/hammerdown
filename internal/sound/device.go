@@ -24,7 +24,7 @@ func openDevice() (output, error) {
 		ChannelCount:    1,
 		Format:          oto.FormatFloat32LE,
 		BufferSize:      20 * time.Millisecond, // keep key-to-sound latency low
-		ApplicationName: "mkup",
+		ApplicationName: "hammerdown",
 	})
 	if err != nil {
 		return nil, err

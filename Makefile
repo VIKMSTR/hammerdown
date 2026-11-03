@@ -1,12 +1,12 @@
-# mkup — Markdown editor (Go + Fyne)
+# Hammerdown — Markdown editor (Go + Fyne)
 #
-#   make            build ./mkup for this machine
+#   make            build ./hammerdown for this machine
 #   make run        build and start (FILE=notes.md to open a file)
 #   make check      format check + vet + tests
-#   make package    native app bundle (mkup.app on macOS, tar.xz on Linux, .exe on Windows)
+#   make package    native app bundle (hammerdown.app on macOS, tar.xz on Linux, .exe on Windows)
 #   make help       list all targets
 
-APP      := mkup
+APP      := hammerdown
 # Name, ID, icon and version come from FyneApp.toml (the fyne tool bumps
 # Build there on every release package).
 
@@ -69,7 +69,7 @@ tools: $(FYNE) ## Install the fyne packaging tool into ./bin
 $(FYNE):
 	GOBIN=$(BIN_DIR) $(GO) install fyne.io/tools/cmd/fyne@$(FYNE_TOOLS_VERSION)
 
-package: $(FYNE) ## Build a native app bundle for this OS (mkup.app on macOS)
+package: $(FYNE) ## Build a native app bundle for this OS (hammerdown.app on macOS)
 	rm -rf $(APP).app
 	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(BIN_DIR)/$(APP)$(EXE) .
 	$(FYNE) package --os $(GOOS) --release --exe $(BIN_DIR)/$(APP)$(EXE)

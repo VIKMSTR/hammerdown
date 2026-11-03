@@ -16,9 +16,9 @@ import (
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 
-	"mkup/internal/editor"
-	md "mkup/internal/markdown"
-	"mkup/internal/sound"
+	"hammerdown/internal/editor"
+	md "hammerdown/internal/markdown"
+	"hammerdown/internal/sound"
 )
 
 //go:embed reference.md

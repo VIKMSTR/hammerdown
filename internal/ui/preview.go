@@ -15,7 +15,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	md "mkup/internal/markdown"
+	md "hammerdown/internal/markdown"
 )
 
 // previewRenderer turns a parsed document into Fyne canvas objects.

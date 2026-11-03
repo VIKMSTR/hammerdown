@@ -13,9 +13,9 @@ import (
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/theme"
 
-	"mkup/internal/editor"
-	md "mkup/internal/markdown"
-	"mkup/internal/sound"
+	"hammerdown/internal/editor"
+	md "hammerdown/internal/markdown"
+	"hammerdown/internal/sound"
 )
 
 func newTestApp(t *testing.T) *App {
@@ -26,17 +26,17 @@ func newTestApp(t *testing.T) *App {
 }
 
 // TestRenderReference renders the built-in reference in the preview and,
-// with MKUP_SHOT=path, saves a screenshot for visual inspection.
+// with HAMMERDOWN_SHOT=path, saves a screenshot for visual inspection.
 func TestRenderReference(t *testing.T) {
 	a := newTestApp(t)
-	switch os.Getenv("MKUP_VARIANT") {
+	switch os.Getenv("HAMMERDOWN_VARIANT") {
 	case "light":
 		a.fyneApp.Settings().SetTheme(fixedVariant{newTheme(), theme.VariantLight})
 	case "dark":
 		a.fyneApp.Settings().SetTheme(fixedVariant{newTheme(), theme.VariantDark})
 	}
 	src, path := referenceDoc, ""
-	if p := os.Getenv("MKUP_DOC"); p != "" {
+	if p := os.Getenv("HAMMERDOWN_DOC"); p != "" {
 		b, err := os.ReadFile(p)
 		if err != nil {
 			t.Fatal(err)
@@ -49,8 +49,8 @@ func TestRenderReference(t *testing.T) {
 		t.Fatal("no heading anchors rendered")
 	}
 	a.followLink("#tables") // must not panic, scrolls preview
-	if p := os.Getenv("MKUP_SHOT"); p != "" {
-		if off := os.Getenv("MKUP_SCROLL"); off != "" {
+	if p := os.Getenv("HAMMERDOWN_SHOT"); p != "" {
+		if off := os.Getenv("HAMMERDOWN_SCROLL"); off != "" {
 			a.followLink("#" + off)
 		}
 		img := a.win.Canvas().Capture()
@@ -194,7 +194,7 @@ func TestTypingSoundHooks(t *testing.T) {
 
 // TestSpeedMeter checks the typing-speed meter is hidden by default, counts
 // keystrokes only when shown, animates towards the reading, and goes idle
-// after a pause. With MKUP_METER_SHOT=path it saves a screenshot.
+// after a pause. With HAMMERDOWN_METER_SHOT=path it saves a screenshot.
 func TestSpeedMeter(t *testing.T) {
 	a := newTestApp(t)
 	m := a.speedMeter
@@ -233,7 +233,7 @@ func TestSpeedMeter(t *testing.T) {
 	if m.display < 330 || m.display > 390 || m.peak < m.display {
 		t.Fatalf("display %.0f peak %.0f, want ~360", m.display, m.peak)
 	}
-	if p := os.Getenv("MKUP_METER_SHOT"); p != "" {
+	if p := os.Getenv("HAMMERDOWN_METER_SHOT"); p != "" {
 		a.win.Resize(fyne.NewSize(1000, 300))
 		img := a.win.Canvas().Capture()
 		f, err := os.Create(p)

@@ -12,7 +12,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"mkup/internal/editor"
+	"hammerdown/internal/editor"
 )
 
 const (

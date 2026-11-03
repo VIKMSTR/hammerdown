@@ -9,9 +9,9 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"mkup/internal/editor"
-	md "mkup/internal/markdown"
-	"mkup/internal/sound"
+	"hammerdown/internal/editor"
+	md "hammerdown/internal/markdown"
+	"hammerdown/internal/sound"
 )
 
 const mod = fyne.KeyModifierShortcutDefault
@@ -145,7 +145,7 @@ func (a *App) mainMenu() *fyne.MainMenu {
 		fyne.NewMenuItem("Markdown Reference", a.showReference),
 		fyne.NewMenuItem("Open Reference as Document", func() { a.confirmDiscard(a.openReferenceDoc) }),
 		fyne.NewMenuItemSeparator(),
-		fyne.NewMenuItem("About mkup", a.about),
+		fyne.NewMenuItem("About Hammerdown", a.about),
 	)
 	return fyne.NewMainMenu(file, edit, format, insert, view, help)
 }

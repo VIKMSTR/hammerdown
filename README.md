@@ -1,4 +1,4 @@
-# mkup
+# Hammerdown
 
 A desktop Markdown editor with live preview, written in Go with
 [Fyne](https://fyne.io) v2.8.
@@ -21,10 +21,10 @@ Requires Go 1.24+ and a C compiler (Fyne uses cgo; on macOS install the Xcode
 command line tools).
 
 ```sh
-make                   # build ./mkup (cgo on, stripped, -trimpath)
+make                   # build ./hammerdown (cgo on, stripped, -trimpath)
 make run FILE=notes.md # build and open a file (FILE is optional)
 make check             # gofmt check + go vet + tests
-make package           # native bundle: mkup.app on macOS, .tar.xz on Linux, .exe on Windows
+make package           # native bundle: hammerdown.app on macOS, .tar.xz on Linux, .exe on Windows
 make clean
 make help              # list all targets
 ```

@@ -1,12 +1,12 @@
-// Command mkup is a Markdown editor with live preview built on Fyne.
+// Command hammerdown is a Markdown editor with live preview built on Fyne.
 //
-// Usage: mkup [file.md]
+// Usage: hammerdown [file.md]
 package main
 
 import (
 	"os"
 
-	"mkup/internal/ui"
+	"hammerdown/internal/ui"
 )
 
 func main() {
