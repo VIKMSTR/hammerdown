@@ -1,0 +1,6 @@
+mkup
+mkup.exe
+mkup.app
+mkup.tar.xz
+bin/
+*.test
