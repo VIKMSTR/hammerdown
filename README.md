@@ -49,6 +49,11 @@ increments `Build` in that file on every release package.
 - Images resolve relative to the document, bare filenames also in `incoming/`;
   remote images and YouTube thumbnails load in the background.
 - Help → Markdown Reference shows every supported construct.
+- Optional typing sound (View → Typing Sound, off by default): a soft
+  vibration-like buzz, bubbles, or a typewriter (with a bell on Enter), in
+  three volume levels. Space, Enter and Backspace sound slightly different
+  from letters; navigation keys and shortcuts are silent. Samples are CC0
+  recordings from BigSoundBank.com, see `internal/sound/assets/CREDITS.md`.
 
 ## Shortcuts
 
@@ -70,5 +75,6 @@ increments `Build` in that file on every release package.
 main.go                  entry point
 internal/markdown        parser (AST) + HTML renderer, no GUI deps
 internal/editor          undo history and text formatting operations, no GUI deps
+internal/sound           typing feedback sounds (embedded CC0 samples, oto audio output)
 internal/ui              Fyne app: window, menus, toolbar, preview renderer, dialogs
 ```

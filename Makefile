@@ -33,7 +33,7 @@ endif
 
 LDFLAGS  := -s -w $(GUI_LDFLAGS)
 SOURCES  := $(shell find . -name '*.go' -not -path './bin/*') go.mod go.sum \
-            internal/ui/reference.md
+            internal/ui/reference.md $(wildcard internal/sound/assets/*.wav)
 
 .DEFAULT_GOAL := build
 .PHONY: build run test test-race vet fmt fmt-check check package tools clean help

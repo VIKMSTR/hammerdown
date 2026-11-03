@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"mkup/internal/editor"
+	"mkup/internal/sound"
 )
 
 // mdEntry is a multi-line Entry that routes undo/redo to the app's own
@@ -18,6 +19,7 @@ type mdEntry struct {
 	onReturn       func() bool // returns true if it handled the key
 	onPaste        func(apply func())
 	contextMenu    func() *fyne.Menu
+	onKeySound     func(sound.Kind) // typing feedback, called before the key is applied
 }
 
 func newMDEntry() *mdEntry {
@@ -50,7 +52,28 @@ func (e *mdEntry) TypedShortcut(s fyne.Shortcut) {
 	e.Entry.TypedShortcut(s)
 }
 
+func (e *mdEntry) TypedRune(r rune) {
+	if e.onKeySound != nil {
+		if r == ' ' {
+			e.onKeySound(sound.Space)
+		} else {
+			e.onKeySound(sound.Key)
+		}
+	}
+	e.Entry.TypedRune(r)
+}
+
 func (e *mdEntry) TypedKey(k *fyne.KeyEvent) {
+	if e.onKeySound != nil {
+		switch k.Name {
+		case fyne.KeyReturn, fyne.KeyEnter:
+			e.onKeySound(sound.Return)
+		case fyne.KeyBackspace, fyne.KeyDelete:
+			e.onKeySound(sound.Delete)
+		case fyne.KeyTab:
+			e.onKeySound(sound.Space)
+		}
+	}
 	if (k.Name == fyne.KeyReturn || k.Name == fyne.KeyEnter) && e.SelectedText() == "" &&
 		e.onReturn != nil && e.onReturn() {
 		return

@@ -16,6 +16,7 @@ import (
 
 	"mkup/internal/editor"
 	md "mkup/internal/markdown"
+	"mkup/internal/sound"
 )
 
 const (
@@ -27,6 +28,8 @@ const (
 	prefShowPreview = "showPreview"
 	prefSplit       = "splitOffset"
 	prefLastDir     = "lastDir"
+	prefSound       = "typingSound"
+	prefSoundVolume = "typingSoundVolume"
 )
 
 // App is the editor application state.
@@ -56,6 +59,9 @@ type App struct {
 	posLabel, statsLabel, hintLabel *widget.Label
 	status                          *fyne.Container
 	wrapItem, previewItem           *fyne.MenuItem
+
+	sounds                *sound.Player
+	soundMenu, volumeMenu []*fyne.MenuItem
 }
 
 // Run starts the application, opening the file given as the first argument.
@@ -110,6 +116,14 @@ func (a *App) build() {
 		a.history.Break()
 	}
 	a.entry.contextMenu = a.contextMenu
+
+	a.sounds = sound.New()
+	a.sounds.OnError = func(err error) {
+		fyne.Do(func() { a.hint("Typing sound unavailable: " + err.Error()) })
+	}
+	a.sounds.SetVolume(prefs.FloatWithFallback(prefSoundVolume, a.sounds.Volume()))
+	a.sounds.SetProfile(sound.ParseProfile(prefs.String(prefSound)))
+	a.entry.onKeySound = a.sounds.Play
 
 	a.previewScroll = container.NewVScroll(readable(widget.NewLabel("")))
 	a.editorPane = container.NewStack(newPanel(colorEditorBg),

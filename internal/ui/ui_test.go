@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"image/color"
 	"image/png"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"mkup/internal/editor"
 	md "mkup/internal/markdown"
+	"mkup/internal/sound"
 )
 
 func newTestApp(t *testing.T) *App {
@@ -163,5 +165,28 @@ func TestSaveAndOpen(t *testing.T) {
 	a.openPath(path)
 	if a.entry.Text != "# Title\n" || a.history.CanUndo() {
 		t.Error("open should load text and reset history")
+	}
+}
+
+// TestTypingSoundHooks checks typing sound is off by default (no audio device
+// opened, volume presets disabled) and that keys map to the right sound kind.
+func TestTypingSoundHooks(t *testing.T) {
+	a := newTestApp(t)
+	if a.sounds.Profile() != sound.Off {
+		t.Fatalf("default profile %q, want off", a.sounds.Profile())
+	}
+	if !a.soundMenu[0].Checked || !a.volumeMenu[0].Disabled {
+		t.Fatal("menu should show Off ticked and volume disabled")
+	}
+
+	var got []sound.Kind
+	a.entry.onKeySound = func(k sound.Kind) { got = append(got, k) }
+	test.Type(a.entry, "a ")
+	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
+	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyBackspace})
+	a.entry.TypedKey(&fyne.KeyEvent{Name: fyne.KeyLeft}) // navigation is silent
+	want := []sound.Kind{sound.Key, sound.Space, sound.Return, sound.Delete}
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Fatalf("kinds %v, want %v", got, want)
 	}
 }

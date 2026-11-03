@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/driver/desktop"
@@ -10,6 +11,7 @@ import (
 
 	"mkup/internal/editor"
 	md "mkup/internal/markdown"
+	"mkup/internal/sound"
 )
 
 const mod = fyne.KeyModifierShortcutDefault
@@ -134,7 +136,7 @@ func (a *App) mainMenu() *fyne.MainMenu {
 	a.previewItem.Checked = a.showPreview
 	a.wrapItem = fyne.NewMenuItem("Word Wrap", a.toggleWrap)
 	a.wrapItem.Checked = a.entry.Wrapping != fyne.TextWrapOff
-	view := fyne.NewMenu("View", a.previewItem, a.wrapItem)
+	view := fyne.NewMenu("View", a.previewItem, a.wrapItem, fyne.NewMenuItemSeparator(), a.soundMenuItem())
 
 	help := fyne.NewMenu("Help",
 		fyne.NewMenuItem("Markdown Reference", a.showReference),
@@ -143,6 +145,67 @@ func (a *App) mainMenu() *fyne.MainMenu {
 		fyne.NewMenuItem("About mkup", a.about),
 	)
 	return fyne.NewMainMenu(file, edit, format, insert, view, help)
+}
+
+// soundVolumes are the volume presets offered in the Typing Sound menu.
+var soundVolumes = []struct {
+	label string
+	value float64
+}{{"Quiet", 0.3}, {"Normal", 0.6}, {"Loud", 1}}
+
+// soundMenuItem builds View → Typing Sound: a profile choice (off by
+// default) and a volume preset. Picking either plays a preview.
+func (a *App) soundMenuItem() *fyne.MenuItem {
+	a.soundMenu = a.soundMenu[:0]
+	for _, p := range sound.Profiles {
+		a.soundMenu = append(a.soundMenu, fyne.NewMenuItem(p.Label(), func() { a.setSoundProfile(p) }))
+	}
+	a.volumeMenu = a.volumeMenu[:0]
+	for _, v := range soundVolumes {
+		a.volumeMenu = append(a.volumeMenu, fyne.NewMenuItem("Volume: "+v.label, func() { a.setSoundVolume(v.value) }))
+	}
+	items := append(append([]*fyne.MenuItem{}, a.soundMenu...), fyne.NewMenuItemSeparator())
+	items = append(items, a.volumeMenu...)
+	it := fyne.NewMenuItem("Typing Sound", nil)
+	it.ChildMenu = fyne.NewMenu("", items...)
+	a.syncSoundMenu()
+	return it
+}
+
+func (a *App) setSoundProfile(p sound.Profile) {
+	a.sounds.SetProfile(p)
+	a.fyneApp.Preferences().SetString(prefSound, string(p))
+	a.syncSoundMenu()
+	a.sounds.Preview()
+}
+
+func (a *App) setSoundVolume(v float64) {
+	a.sounds.SetVolume(v)
+	a.fyneApp.Preferences().SetFloat(prefSoundVolume, v)
+	a.syncSoundMenu()
+	a.sounds.Preview()
+}
+
+// syncSoundMenu ticks the current profile and the nearest volume preset;
+// the volume presets are disabled while the sound is off.
+func (a *App) syncSoundMenu() {
+	cur := a.sounds.Profile()
+	for i, it := range a.soundMenu {
+		it.Checked = sound.Profiles[i] == cur
+	}
+	vol, best := a.sounds.Volume(), 0
+	for i, v := range soundVolumes {
+		if math.Abs(v.value-vol) < math.Abs(soundVolumes[best].value-vol) {
+			best = i
+		}
+	}
+	for i, it := range a.volumeMenu {
+		it.Checked = i == best
+		it.Disabled = cur == sound.Off
+	}
+	if m := a.win.MainMenu(); m != nil {
+		m.Refresh()
+	}
 }
 
 func (a *App) contextMenu() *fyne.Menu {
