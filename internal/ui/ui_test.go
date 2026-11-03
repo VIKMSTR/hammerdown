@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"image/color"
 	"image/png"
 	"os"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
+	"fyne.io/fyne/v2/theme"
 
 	"mkup/internal/editor"
 	md "mkup/internal/markdown"
@@ -24,6 +26,12 @@ func newTestApp(t *testing.T) *App {
 // with MKUP_SHOT=path, saves a screenshot for visual inspection.
 func TestRenderReference(t *testing.T) {
 	a := newTestApp(t)
+	switch os.Getenv("MKUP_VARIANT") {
+	case "light":
+		a.fyneApp.Settings().SetTheme(fixedVariant{newTheme(), theme.VariantLight})
+	case "dark":
+		a.fyneApp.Settings().SetTheme(fixedVariant{newTheme(), theme.VariantDark})
+	}
 	src, path := referenceDoc, ""
 	if p := os.Getenv("MKUP_DOC"); p != "" {
 		b, err := os.ReadFile(p)
@@ -52,6 +60,16 @@ func TestRenderReference(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+// fixedVariant renders a theme in one variant regardless of the system setting.
+type fixedVariant struct {
+	fyne.Theme
+	v fyne.ThemeVariant
+}
+
+func (f fixedVariant) Color(n fyne.ThemeColorName, _ fyne.ThemeVariant) color.Color {
+	return f.Theme.Color(n, f.v)
 }
 
 func TestFormattingUndoRedo(t *testing.T) {

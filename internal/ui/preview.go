@@ -165,10 +165,15 @@ func (r *previewRenderer) heading(h *md.Heading) fyne.CanvasObject {
 	if h.Level == 6 {
 		st.color = colorMuted
 	}
-	var obj fyne.CanvasObject = r.richText(r.inlines(h.Inlines, st))
+	// A little air above headings separates sections more clearly than the
+	// uniform VBox gap does.
+	gap := canvas.NewRectangle(color.Transparent)
+	gap.SetMinSize(fyne.NewSize(0, max(0, 12-2*float32(h.Level))))
+	objs := []fyne.CanvasObject{gap, r.richText(r.inlines(h.Inlines, st))}
 	if h.Level <= 2 {
-		obj = container.NewVBox(obj, widget.NewSeparator())
+		objs = append(objs, widget.NewSeparator())
 	}
+	var obj fyne.CanvasObject = container.NewVBox(objs...)
 	if h.ID != "" {
 		r.anchors[h.ID] = obj
 	}

@@ -49,6 +49,7 @@ type App struct {
 
 	body        *fyne.Container // holds either the split or the editor alone
 	split       *container.Split
+	splitView   fyne.CanvasObject // split wrapped in its theme override
 	editorPane  fyne.CanvasObject
 	showPreview bool
 
@@ -73,6 +74,7 @@ func newApp(fa fyne.App) *App {
 	a := &App{fyneApp: fa}
 	fa.Settings().SetTheme(newTheme())
 	a.win = fa.NewWindow(appName)
+	a.win.SetPadded(false) // panels run edge to edge
 	a.build()
 	a.win.Resize(fyne.NewSize(1280, 820))
 	a.win.Canvas().Focus(a.entry)
@@ -80,7 +82,8 @@ func newApp(fa fyne.App) *App {
 }
 
 func (a *App) build() {
-	prefs := a.fyneApp.Preferences()
+	fa := a.fyneApp
+	prefs := fa.Preferences()
 	a.history = editor.NewHistory("")
 	a.images = newImageLoader()
 	a.images.onUpdate = a.schedulePreview
@@ -108,19 +111,25 @@ func (a *App) build() {
 	}
 	a.entry.contextMenu = a.contextMenu
 
-	a.previewScroll = container.NewVScroll(container.NewPadded(widget.NewLabel("")))
-	a.editorPane = a.entry
+	a.previewScroll = container.NewVScroll(readable(widget.NewLabel("")))
+	a.editorPane = container.NewStack(newPanel(colorEditorBg),
+		bleed(container.NewThemeOverride(a.entry, editorTheme{}), 2*editorBorder))
 	a.split = container.NewHSplit(a.editorPane, a.previewScroll)
 	a.split.Offset = prefs.FloatWithFallback(prefSplit, 0.5)
+	a.splitView = container.NewThemeOverride(a.split, splitTheme{})
 	a.showPreview = prefs.BoolWithFallback(prefShowPreview, true)
 	a.body = container.NewStack()
 	a.applyLayout()
 
 	a.status = container.NewBorder(nil, nil, a.posLabel, a.statsLabel, a.hintLabel)
 
-	top := container.NewVBox(a.toolbar(), widget.NewSeparator())
-	bottom := container.NewVBox(widget.NewSeparator(), a.status)
-	a.win.SetContent(container.NewBorder(top, bottom, nil, nil, a.body))
+	// The bars are opaque end to end (gaps included) because the editor's
+	// hidden frame runs underneath their edges.
+	top := container.NewStack(newPanel(colorChrome),
+		container.NewVBox(container.NewPadded(a.toolbar()), widget.NewSeparator()))
+	bottom := container.NewStack(newPanel(colorChrome),
+		container.NewVBox(widget.NewSeparator(), a.status))
+	a.win.SetContent(container.New(&stackedLayout{}, a.body, top, bottom))
 	a.win.SetMainMenu(a.mainMenu())
 	a.win.SetCloseIntercept(func() { a.confirmDiscard(a.quit) })
 	a.win.SetOnDropped(func(_ fyne.Position, uris []fyne.URI) {
@@ -128,6 +137,9 @@ func (a *App) build() {
 			a.confirmDiscard(func() { a.openPath(uris[0].Path()) })
 		}
 	})
+	// The preview bakes theme colours into its objects; rebuild it when the
+	// system switches between light and dark.
+	fa.Settings().AddListener(func(fyne.Settings) { a.schedulePreview() })
 	a.updatePosition()
 }
 
@@ -234,7 +246,7 @@ func (a *App) schedulePreview() {
 func (a *App) renderPreview(doc *md.Document) {
 	offset := a.previewScroll.Offset
 	a.renderer.baseDir = a.baseDir()
-	a.previewScroll.Content = container.NewPadded(a.renderer.render(doc))
+	a.previewScroll.Content = readable(a.renderer.render(doc))
 	a.previewScroll.Refresh()
 	a.previewScroll.ScrollToOffset(offset)
 }
@@ -267,7 +279,7 @@ func (a *App) followLink(href string) {
 func (a *App) applyLayout() {
 	if a.showPreview {
 		a.split.Leading = a.editorPane
-		a.body.Objects = []fyne.CanvasObject{a.split}
+		a.body.Objects = []fyne.CanvasObject{a.splitView}
 	} else {
 		a.body.Objects = []fyne.CanvasObject{a.editorPane}
 	}

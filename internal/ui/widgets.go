@@ -179,3 +179,108 @@ func fixedHeight(obj fyne.CanvasObject, h float32) fyne.CanvasObject {
 	spacer.SetMinSize(fyne.NewSize(1, h))
 	return container.NewStack(spacer, obj)
 }
+
+// panel is a flat background filled with a theme colour. Being a widget, it
+// picks up the new colour when the theme or light/dark variant changes.
+type panel struct {
+	widget.BaseWidget
+	color fyne.ThemeColorName
+}
+
+func newPanel(c fyne.ThemeColorName) *panel {
+	p := &panel{color: c}
+	p.ExtendBaseWidget(p)
+	return p
+}
+
+func (p *panel) CreateRenderer() fyne.WidgetRenderer {
+	r := &panelRenderer{p: p, rect: canvas.NewRectangle(color.Transparent)}
+	r.Refresh()
+	return r
+}
+
+type panelRenderer struct {
+	p    *panel
+	rect *canvas.Rectangle
+}
+
+func (r *panelRenderer) Layout(s fyne.Size) { r.rect.Resize(s) }
+func (r *panelRenderer) MinSize() fyne.Size { return fyne.Size{} }
+func (r *panelRenderer) Destroy()           {}
+func (r *panelRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.rect}
+}
+
+func (r *panelRenderer) Refresh() {
+	r.rect.FillColor = r.p.Theme().Color(r.p.color, fyne.CurrentApp().Settings().ThemeVariant())
+	r.rect.Refresh()
+}
+
+// readableLayout centres its content in a column no wider than maxWidth,
+// with comfortable margins, like a page of a book.
+type readableLayout struct{ maxWidth, margin float32 }
+
+func (l *readableLayout) Layout(objs []fyne.CanvasObject, s fyne.Size) {
+	w := min(max(s.Width-2*l.margin, 0), l.maxWidth)
+	x := (s.Width - w) / 2
+	for _, o := range objs {
+		o.Move(fyne.NewPos(x, l.margin))
+		o.Resize(fyne.NewSize(w, max(s.Height-2*l.margin, 0)))
+	}
+}
+
+func (l *readableLayout) MinSize(objs []fyne.CanvasObject) fyne.Size {
+	var m fyne.Size
+	for _, o := range objs {
+		m = m.Max(o.MinSize())
+	}
+	return fyne.NewSize(m.Width+2*l.margin, m.Height+2*l.margin)
+}
+
+func readable(obj fyne.CanvasObject) fyne.CanvasObject {
+	return container.New(&readableLayout{maxWidth: 760, margin: 28}, obj)
+}
+
+// bleedLayout grows its child by a fixed amount past every edge, so a frame
+// drawn there ends up under the neighbouring panes (or off the window).
+type bleedLayout struct{ bleed float32 }
+
+func (l *bleedLayout) Layout(objs []fyne.CanvasObject, s fyne.Size) {
+	for _, o := range objs {
+		o.Move(fyne.NewPos(-l.bleed, -l.bleed))
+		o.Resize(s.AddWidthHeight(2*l.bleed, 2*l.bleed))
+	}
+}
+
+func (l *bleedLayout) MinSize(objs []fyne.CanvasObject) fyne.Size {
+	var m fyne.Size
+	for _, o := range objs {
+		m = m.Max(o.MinSize())
+	}
+	return m.SubtractWidthHeight(2*l.bleed, 2*l.bleed).Max(fyne.Size{})
+}
+
+func bleed(obj fyne.CanvasObject, by float32) fyne.CanvasObject {
+	return container.New(&bleedLayout{bleed: by}, obj)
+}
+
+// stackedLayout places objs[1] at the top and objs[2] at the bottom, and fills
+// the space between with objs[0]. Unlike the Border layout it leaves no gaps,
+// and since the bars come later in the list they draw over the body's edges.
+type stackedLayout struct{}
+
+func (stackedLayout) Layout(objs []fyne.CanvasObject, s fyne.Size) {
+	body, top, bottom := objs[0], objs[1], objs[2]
+	th, bh := top.MinSize().Height, bottom.MinSize().Height
+	top.Move(fyne.NewPos(0, 0))
+	top.Resize(fyne.NewSize(s.Width, th))
+	bottom.Move(fyne.NewPos(0, s.Height-bh))
+	bottom.Resize(fyne.NewSize(s.Width, bh))
+	body.Move(fyne.NewPos(0, th))
+	body.Resize(fyne.NewSize(s.Width, max(s.Height-th-bh, 0)))
+}
+
+func (stackedLayout) MinSize(objs []fyne.CanvasObject) fyne.Size {
+	w := max(objs[0].MinSize().Width, objs[1].MinSize().Width, objs[2].MinSize().Width)
+	return fyne.NewSize(w, objs[0].MinSize().Height+objs[1].MinSize().Height+objs[2].MinSize().Height)
+}
