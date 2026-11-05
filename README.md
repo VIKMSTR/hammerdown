@@ -58,6 +58,9 @@ git tag v0.2.0 && git push origin v0.2.0
   toggles (applying bold to bold text removes it).
 - Enter continues lists and quotes; Enter on an empty item ends the list.
 - Insert dialogs for links, images, video/audio, attachments and tables.
+- Insert → Template adds a starter `AGENTS.md`, `CLAUDE.md` or Agent Skill
+  (`SKILL.md`) at the cursor. The skill template has `name` / `description`
+  front matter, so it is always placed at the top of the document.
 - Images resolve relative to the document, bare filenames also in `incoming/`;
   remote images and YouTube thumbnails load in the background.
 - Help → Markdown Reference shows every supported construct.

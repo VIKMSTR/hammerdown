@@ -130,6 +130,8 @@ func (a *App) mainMenu() *fyne.MainMenu {
 		fyne.NewMenuItem("Horizontal Rule", a.block("---", -1)),
 		fyne.NewMenuItem("Teaser Break (//--more--//)", a.block(md.TeaserMarker, -1)),
 		fyne.NewMenuItem("Front Matter", a.frontMatter),
+		fyne.NewMenuItemSeparator(),
+		a.templateMenuItem(),
 	)
 
 	a.previewItem = item("Show Preview", key(fyne.KeyP, fyne.KeyModifierShift), a.togglePreview)
