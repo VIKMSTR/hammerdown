@@ -39,7 +39,7 @@ Pushing a version tag builds every platform in GitHub Actions
 (`.github/workflows/release.yml`) and publishes a GitHub Release with
 `hammerdown.exe` (Windows), `hammerdown.tar.xz` (Linux),
 `hammerdown-macos.zip` (macOS, unsigned) and `hammerdown.apk` (Android,
-debug-signed for sideloading):
+arm64, debug-signed for sideloading):
 
 ```sh
 git tag v0.2.0 && git push origin v0.2.0

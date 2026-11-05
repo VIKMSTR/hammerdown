@@ -108,7 +108,7 @@ jobs:
         # Debug-signed APK for sideloading; a Play Store build needs
         # `fyne release` with a keystore stored in repository secrets.
         run: |
-          fyne package --os android \
+          fyne package --os android/arm64 \
             --app-version "$APP_VERSION" --app-build "$APP_BUILD"
 
       - name: Zip macOS bundle
